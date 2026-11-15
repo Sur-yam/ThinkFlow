@@ -1137,11 +1137,11 @@ test("output after MCP admission fails continuation instead of silently replayin
 	await assertCleanedUp(getOnlyCall(calls));
 });
 
-test("normal completion escalates termination when the child ignores SIGTERM", async (t) => {
+test("normal completion stops the child even when it tries to ignore SIGTERM", async (t) => {
 	const { events, calls } = await runScenario(t, [JSON.stringify({ fake: "ignore-term" }), ...readFixtureLines("text.jsonl"), HOLD]);
 	assert.equal(getLastEvent(events).type, "done");
 	await assertCleanedUp(getOnlyCall(calls));
-	assert.equal(getOnlyCall(calls).child.signalCode, "SIGKILL");
+	assert.equal(getOnlyCall(calls).child.signalCode, process.platform === "win32" ? "SIGTERM" : "SIGKILL");
 });
 
 for (const asyncVersionFailure of [false, true]) test(`${asyncVersionFailure ? "an asynchronous version-check" : "a synchronous spawn"} failure removes both temp directories and the bridge`, async () => {

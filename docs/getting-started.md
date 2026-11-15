@@ -1,6 +1,6 @@
 # Getting started
 
-Download LearnHarness from [learnharness.ai](https://learnharness.ai) or [GitHub Releases](https://github.com/amosblomqvist/learnharness/releases). For running from source, see [Development](development.md).
+Check [ThinkFlow Releases](https://github.com/Sur-yam/ThinkFlow/releases) for published installers, or [run ThinkFlow from source](../README.md#run-from-source).
 
 ## Connect models
 

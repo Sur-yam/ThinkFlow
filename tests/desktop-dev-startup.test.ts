@@ -105,10 +105,10 @@ describe("development server readiness", () => {
 	});
 });
 
-function boot() {
+function boot(managed = false) {
 	let ready!: () => void, fail!: (error: Error) => void;
 	const readiness = new Promise<void>((resolve, reject) => { ready = resolve; fail = reject; });
-	const windows: string[] = [], exits: number[] = [], logs: string[] = [], probes: { url: string; signal: AbortSignal }[] = [];
+	const windows: string[] = [], exits: number[] = [], logs: string[] = [], probes: { url: string; signal: AbortSignal; timeoutMs?: number }[] = [];
 	const app = Object.assign(new EventEmitter(), {
 		setName() {}, getPath: () => "/fixture/LearnHarness", setPath() {}, requestSingleInstanceLock: () => false,
 		quit() {}, whenReady: async () => {}, exit: (code: number) => exits.push(code), isPackaged: false,
@@ -125,10 +125,10 @@ function boot() {
 	const context = {
 		require: (id: string) => id === "electron" ? electron : id === "node:fs" ? { mkdirSync() {}, appendFileSync() {} }
 			: id === "./appearance-chrome.cjs" ? { ...mainRequire(id), readAppearance: () => ({ mode: "dark", background: "#141414" }) }
-			: id === "./dev-server-readiness.cjs" ? { waitForDevServer: (url: string, { signal }: { signal: AbortSignal }) => {
-				probes.push({ url, signal }); signal.addEventListener("abort", () => fail(signal.reason), { once: true }); return readiness;
+			: id === "./dev-server-readiness.cjs" ? { waitForDevServer: (url: string, { signal, timeoutMs }: { signal: AbortSignal; timeoutMs?: number }) => {
+				probes.push({ url, signal, timeoutMs }); signal.addEventListener("abort", () => fail(signal.reason), { once: true }); return readiness;
 			} } : mainRequire(id),
-		process: Object.assign(new EventEmitter(), { platform: "darwin", argv: [], env: { LH_DEV_URL: "http://localhost:3000" } }),
+		process: Object.assign(new EventEmitter(), { platform: "darwin", argv: [], env: { LH_DEV_URL: "http://localhost:3000", LH_DESKTOP_DEV: managed ? "1" : undefined } }),
 		__dirname: dirname(mainFile), AbortController,
 		console: { log: (line: string) => logs.push(line) },
 	};
@@ -139,8 +139,9 @@ function boot() {
 
 describe("real Electron main dev startup wiring", () => {
 	it("does not create/load the window until readiness, and detaches its temporary quit listener", async () => {
-		const f = boot(); await delay(0);
+		const f = boot(true); await delay(0);
 		assert.equal(f.probes.length, 1); assert.equal(f.probes[0]!.url, "http://localhost:3000"); assert.deepEqual(f.windows, []);
+		assert.equal(f.probes[0]!.timeoutMs, 300_000);
 		f.ready(); await f.done;
 		assert.deepEqual(f.windows, ["http://localhost:3000"]); assert.deepEqual(f.exits, []);
 		assert.equal(f.app.listenerCount("before-quit"), 1, "only the existing server cleanup listener should remain");

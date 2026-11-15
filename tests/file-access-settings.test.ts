@@ -86,13 +86,21 @@ describe("strict persisted file-access policy", () => {
 		assert.equal(readFileAccessSettings().ok, false);
 		assert.throws(() => resolveSourcePath(path.join(a, "notes.md")), blocked);
 	});
-	it("directories, dangling settings symlinks and dangling data-directory symlinks are not first boot", async () => {
+	it("a directory at the settings path is not first boot", async () => {
 		await fs.mkdir(SETTINGS_FILE);
 		assert.equal(readFileAccessSettings().ok, false);
-		await fs.rmdir(SETTINGS_FILE);
-		await fs.symlink(path.join(root, "missing-settings.json"), SETTINGS_FILE, "file");
+	});
+	it("a dangling settings symlink is not first boot", async (t) => {
+		try {
+			await fs.symlink(path.join(root, "missing-settings.json"), SETTINGS_FILE, "file");
+		} catch (error) {
+			if (process.platform !== "win32" || (error as NodeJS.ErrnoException).code !== "EPERM") throw error;
+			t.skip("Creating file symlinks requires Windows Developer Mode or elevated privileges");
+			return;
+		}
 		assert.equal(readFileAccessSettings().ok, false);
-		await fs.unlink(SETTINGS_FILE);
+	});
+	it("a dangling data-directory symlink is not first boot", async () => {
 		await fs.rmdir(data);
 		await fs.symlink(path.join(root, "missing-data"), data, process.platform === "win32" ? "junction" : "dir");
 		try { assert.equal(readFileAccessSettings().ok, false); }

@@ -1,46 +1,69 @@
 # ThinkFlow
 
-ThinkFlow is a learning assistant for adaptive teaching, practice, and a persistent knowledge graph. Its home screen offers editable Quick Start topics for AI and data science.
+ThinkFlow is an AI learning assistant for guided lessons and practice. It checks what you already understand, builds a lesson around your goal, and saves concepts and reasoning in a knowledge graph you can revisit in later sessions.
 
-[Architecture](docs/THINKFLOW_ARCHITECTURE.md) · [Four-minute demo](docs/THINKFLOW_DEMO.md) · [Viva](docs/THINKFLOW_VIVA.md) · [Troubleshooting](docs/THINKFLOW_TROUBLESHOOTING.md) · [ThinkFlow changelog](CHANGELOG_THINKFLOW.md)
+## Run from source
 
-[Documentation index](docs/README.md)
+Install [Git](https://git-scm.com/downloads) and [Node.js 26](https://nodejs.org/en/download), the Node version used by CI. Run these commands in order:
 
-## How it works
-
-1. **Measure.** Before teaching, the agent finds where your understanding ends on each part the lesson depends on. Your answers, confidence, and thinking show it where to start.
-2. **Plan.** It works out a dependency map from that starting point to your goal. You can see the plan, and the lesson adapts when your understanding turns out different.
-3. **Teach.** Each step builds on something you already understand. You predict, get an explanation, and check your understanding. Confusions are repaired before anything is built on them. The aim is for the goal to feel obviously true, not merely familiar.
-4. **Practice.** Separate sessions pose varied problems that require the right knowledge to come to mind without being named first. Problems and hints adapt to your reasoning.
-
-**Think out loud.** The thinking fields let you explain your reasoning, uncertainties, and reactions in your own words. This is how the agent gets a detailed picture rather than just a record of right and wrong answers. You can type or use dictation.
-
-**Bring your files.** In the desktop app, attach PDFs, photos, or any other file with the paperclip, or drag them in. The file stays where it is: the message carries its path, and the agent reads it from there.
-
-The agent can also research questions in the background, create visual explanations, show your own images in the lesson and mark them up with arrows and labels, and build interactive demonstrations.
-
-## Knowledge that carries forward
-
-What you are taught accumulates as propositions and reasoning chains: individual claims and the premises that lead to them. The graph shows this structure, with links back to the source sessions. You can also import notes.
-
-Future teaching sessions can read the graph instead of starting from scratch. Practice sessions can draw their material from it. It stores the ideas and their connections, not ratings of your ability.
-
-![Upstream LearnHarness knowledge graph](docs/assets/knowledge-graph.png)
-
-## Run locally
-
-Use Node 26, as upstream CI does. From PowerShell:
-
-```powershell
-Set-Location 'C:\Users\samal\Desktop\project'
-.\node_modules\.bin\next.cmd dev -H localhost
+```sh
+git clone https://github.com/Sur-yam/ThinkFlow.git
+cd ThinkFlow
+npm ci
+npm run plugins:setup
+npm run dev
 ```
 
-Open http://localhost:3000. Configure a model connection and the Strong, Cheap, and Vision slots in Settings before sending a lesson. See [ThinkFlow releases](https://github.com/Sur-yam/ThinkFlow/releases) for any published builds.
+Open [http://localhost:3000](http://localhost:3000) after the development server reports it is ready. On Windows PowerShell, use `npm.cmd` in place of `npm` if PowerShell blocks `npm.ps1`.
 
-## Your keys, your data
+`plugins:setup` prepares dependencies for the source plugins. The `dev` command builds the bundled plugins and authoring assets before starting Next.js. Allow those steps to finish on the first launch.
 
-- **Your keys and models.** No ThinkFlow subscription or markup. Billing depends on your provider, CLI configuration, subscription, or local setup. The live cost meter estimates known API costs, not subscription, CLI, or custom-endpoint charges.
-- **Local storage.** Your chats, graph, settings, and API keys live on your machine. Learning records are plain files you can inspect.
-- **External services.** Models run through your configured providers. Model requests send the context needed for the task; web research and dictation also contact external services. Local storage does not mean offline processing.
-- **Inspectable behavior.** System prompts are visible and editable
+### Start a lesson
+
+1. Open **Settings** at the bottom of the sidebar, choose **Providers**, and configure a supported model connection using your provider credentials or sign-in.
+2. Set the **Strong**, **Cheap**, and **Vision** model slots. The app opens without credentials, and model-driven features require the configured connection.
+3. Return to the home screen and choose a Quick Start topic or enter your own learning goal.
+
+See the [Getting started guide](docs/getting-started.md) for provider setup, practice, and dictation.
+
+### Desktop
+
+Check [ThinkFlow Releases](https://github.com/Sur-yam/ThinkFlow/releases) for published installers. To open Electron from source, finish the dependency and plugin setup above, stop the browser development server, then run `npm run desktop:dev` from the repository root. After plugin preparation, Electron waits up to five minutes for Next.js to respond.
+
+### Production build
+
+From the repository root, stop the development server, then run:
+
+```sh
+npm run build
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000). Browser mode uses a local server with no app login. Keep it bound to localhost for personal use.
+
+## Development
+
+Run these checks after installing dependencies and preparing the plugins:
+
+```sh
+npm run typecheck
+npm test
+npm run lint
+```
+
+The test suite uses temporary learning-data directories and does not require paid models or real provider sign-in.
+
+- [Development and configuration](docs/development.md)
+- [Troubleshooting](docs/THINKFLOW_TROUBLESHOOTING.md)
+- [Architecture](docs/THINKFLOW_ARCHITECTURE.md)
+- [Demo walkthrough](docs/THINKFLOW_DEMO.md)
+- [Desktop packaging](docs/desktop-release.md)
+- [Changelog](CHANGELOG_THINKFLOW.md)
+
+By default, browser development stores learning records in `data/` and saved API keys in `auth.json`. Keep those files out of commits. Model requests send the context needed for the task to your configured provider.
+
+## Contribution
+
+OpenAI Codex contributed the Windows desktop launcher fixes, repository cleanup, portable test assertions, and this setup guide.
+
+ThinkFlow is licensed under the [GNU Affero General Public License v3.0](LICENSE).

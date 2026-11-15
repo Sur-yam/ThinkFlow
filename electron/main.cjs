@@ -728,7 +728,7 @@ async function main() {
 		const cancelStartup = () => startup.abort(new Error("Development startup cancelled by application quit"));
 		app.once("before-quit", cancelStartup);
 		try {
-			await waitForDevServer(devUrl, { signal: startup.signal });
+			await waitForDevServer(devUrl, { signal: startup.signal, timeoutMs: process.env.LH_DESKTOP_DEV === "1" ? 300_000 : undefined });
 			if (startup.signal.aborted) return;
 			log(`dev server ready: ${devUrl}`);
 		} catch (error) {

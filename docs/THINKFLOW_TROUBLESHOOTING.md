@@ -3,9 +3,7 @@
 ## Windows startup
 
 - If `npm ci` reports `EPERM` for `esbuild.exe`, stop any other install, build, or test for this checkout. Run `npm.cmd ci` in one terminal and wait for it to succeed before running `npm.cmd run plugins:setup`.
-- The authoring step emits TypeScript declarations and builds a ZIP. Follow its progress in the terminal. With root dependencies installed, `.
-ode_modules\.bin
-ext.cmd dev -H localhost` starts Next.js without regenerating plugin builds. Previously built and enabled plugins can still load.
+- On first launch, `npm run dev` builds the bundled plugins, generates TypeScript declarations, and creates the plugin-authoring ZIP before Next.js starts. Follow the progress in the terminal.
 - A cold start compiles each page on its first request. ThinkFlow uses local font fallbacks, so Next.js can compile pages without fetching Google Fonts. If a page still fails, check the terminal for the first error.
 
 ## Session history
